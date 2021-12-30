@@ -2268,7 +2268,9 @@ class UMAP(BaseEstimator):
 
         X = check_array(X, dtype=np.float32, accept_sparse="csr", order="C")
         self._raw_data = X
-
+        self._raw_data_shape_0 = self._raw_data.shape[0]
+        self._raw_data_shape_1 = self._raw_data.shape[1]
+        
         # Handle all the optional arguments, setting default
         if self.a is None or self.b is None:
             self._a, self._b = find_ab_params(self.spread, self.min_dist)
@@ -2799,7 +2801,7 @@ class UMAP(BaseEstimator):
             Embedding of the new data in low-dimensional space.
         """
         # If we fit just a single instance then error
-        if self._raw_data.shape[0] == 1:
+        if self._raw_data_shape_0 == 1:
             raise ValueError(
                 "Transform unavailable when model was fit with only a single data sample."
             )
@@ -2834,7 +2836,7 @@ class UMAP(BaseEstimator):
                 "contain distances from the new points to their nearest neighbours "
                 "or approximate nearest neighbours in the training set."
             )
-            assert X.shape[1] == self._raw_data.shape[0]
+            assert X.shape[1] == self._raw_data_shape_0
             if scipy.sparse.issparse(X):
                 indices = np.full(
                     (X.shape[0], self._n_neighbors), dtype=np.int32, fill_value=-1
@@ -2912,7 +2914,7 @@ class UMAP(BaseEstimator):
         )
 
         graph = scipy.sparse.coo_matrix(
-            (vals, (rows, cols)), shape=(X.shape[0], self._raw_data.shape[0])
+            (vals, (rows, cols)), shape=(X.shape[0], self._raw_data_shape_0)
         )
 
         if self.transform_mode == "graph":
